@@ -31,6 +31,7 @@ def traj_episode_generator(pi, env, horizon, stochastic):
         news.append(new)
         acs.append(ac)
         ob, rew, new, _ = env.step(ac)
+        #env.render()
         rews.append(rew)
 
         cur_ep_ret += rew
@@ -94,6 +95,7 @@ def traj_segment_generator(pi, env, horizon, stochastic):
         prevacs[i] = prevac
 
         ob, rew, new, _ = env.step(ac)
+        env.render()
         rews[i] = rew
 
         cur_ep_ret += rew
@@ -354,7 +356,9 @@ def sample_trajectory(load_model_path, max_sample_traj, traj_gen, task_name, sam
         if MPI.COMM_WORLD.Get_rank()==0:
             logger.dump_tabular()
         traj_data = {"ob":ob, "ac":ac, "rew": rew, "ep_ret":ep_ret}
-        sample_trajs.append(traj_data)
+        if ep_ret>0:
+            sample_trajs.append(traj_data)
+            print('--------------------------this is ok ----------------------')
 
     sample_ep_rets = [traj["ep_ret"] for traj in sample_trajs]
     logger.log("Average total return: %f"%(sum(sample_ep_rets)/len(sample_ep_rets)))

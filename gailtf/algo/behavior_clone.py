@@ -4,11 +4,11 @@ from gailtf.baselines import logger
 from tqdm import tqdm
 from gailtf.baselines.common.mpi_adam import MpiAdam
 import tempfile, os
-from common.statistics import stats
+from gailtf.common.statistics import stats
 import ipdb
 
 def evaluate(env, policy_func, load_model_path, stochastic_policy=False, number_trajs=10):
-  from algo.trpo_mpi import traj_episode_generator
+  from gailtf.algo.trpo_mpi import traj_episode_generator
   ob_space = env.observation_space
   ac_space = env.action_space
   pi = policy_func("pi", ob_space, ac_space) # Construct network for new policy

@@ -294,6 +294,3 @@ def validate_probtype(probtype, pdparam):
     assert np.abs(klval - klval_ll) < 3 * klval_ll_stderr # within 3 sigmas
 if __name__ == '__main__':
     print ("dfslkf")
-    a = BernoulliPd(3)
-    a.make_pdtype(4)
-    print (a.make_pdtype(4) - 3)
