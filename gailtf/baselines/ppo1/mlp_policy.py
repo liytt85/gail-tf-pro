@@ -9,8 +9,10 @@ class MlpPolicy(object):
     def __init__(self, name, reuse=False, *args, **kwargs):
         with tf.variable_scope(name):
             if reuse:
+                #print ("mlp_policy/12lines") dang qian bing mei you bei fu yong
                 tf.get_variable_scope().reuse_variables()
             self._init(*args, **kwargs)
+            #print ("mlp_policy/15lines") yi gong bei zhi xing liang ci
             self.scope = tf.get_variable_scope().name
 
     def _init(self, ob_space, ac_space, hid_size, num_hid_layers, gaussian_fixed_var=True):
@@ -40,7 +42,7 @@ class MlpPolicy(object):
         else:
             pdparam = U.dense(last_out, pdtype.param_shape()[0], "polfinal", U.normc_initializer(0.01))
 
-        self.pd = pdtype.pdfromflat(pdparam)
+        self.pd = pdtype.pdfromflat(pdparam) # mo rren shang mian de pdtype yi ding shi DiagGaussianPd
 
         self.state_in = []
         self.state_out = []

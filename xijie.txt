@@ -1,0 +1,2 @@
+nworkers 1
+rank 0

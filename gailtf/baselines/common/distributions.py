@@ -128,6 +128,7 @@ class CategoricalPd(Pd):
     def mode(self):
         return U.argmax(self.logits, axis=-1)
     def neglogp(self, x):
+        print ("the CategoricalPd is used")
         # return tf.nn.sparse_softmax_cross_entropy_with_logits(logits=self.logits, labels=x)
         # Note: we can't use sparse_softmax_cross_entropy_with_logits because
         #       the implementation does not allow second-order derivatives...
@@ -167,6 +168,9 @@ class MultiCategoricalPd(Pd):
     def mode(self):
         return self.low + tf.cast(tf.stack([p.mode() for p in self.categoricals], axis=-1), tf.int32)
     def neglogp(self, x):
+
+
+        print ("the MultiCategoricalPd is used")
         return tf.add_n([p.neglogp(px) for p, px in zip(self.categoricals, tf.unstack(x - self.low, axis=len(x.get_shape()) - 1))])
     def kl(self, other):
         return tf.add_n([
@@ -192,6 +196,7 @@ class DiagGaussianPd(Pd):
     def mode(self):
         return self.mean
     def neglogp(self, x):
+        print ("the DiagGaussianPd is used")
         return 0.5 * U.sum(tf.square((x - self.mean) / self.std), axis=-1) \
                + 0.5 * np.log(2.0 * np.pi) * tf.to_float(tf.shape(x)[-1]) \
                + U.sum(self.logstd, axis=-1)
@@ -215,6 +220,7 @@ class BernoulliPd(Pd):
     def mode(self):
         return tf.round(self.ps)
     def neglogp(self, x):
+        print ("the BernoulliPd is used")
         return U.sum(tf.nn.sigmoid_cross_entropy_with_logits(logits=self.logits, labels=tf.to_float(x)), axis=-1)
     def kl(self, other):
         return U.sum(tf.nn.sigmoid_cross_entropy_with_logits(logits=other.logits, labels=self.ps), axis=-1) - U.sum(tf.nn.sigmoid_cross_entropy_with_logits(logits=self.logits, labels=self.ps), axis=-1)
@@ -293,7 +299,5 @@ def validate_probtype(probtype, pdparam):
     klval_ll_stderr = logliks.std() / np.sqrt(N) #pylint: disable=E1101
     assert np.abs(klval - klval_ll) < 3 * klval_ll_stderr # within 3 sigmas
 if __name__ == '__main__':
-    print ("dfslkf")
-    a = BernoulliPd(3)
-    a.make_pdtype(4)
-    print (a.make_pdtype(4) - 3)
+    test = Pd()
+    print(test.logp(4))

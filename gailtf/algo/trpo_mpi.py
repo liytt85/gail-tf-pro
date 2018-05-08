@@ -100,7 +100,7 @@ def add_vtarg_and_adv(seg, gamma, lam):
 
 
 def learn(env, policy_func, discriminator, expert_dataset,
-          pretrained, pretrained_weight, *,
+          pretrained, pretrained_weight, *, #pretrained_weight shi yu xing wei ke long you guan de liang
           g_step, d_step,
           timesteps_per_batch,  # what to train on
           max_kl, cg_iters,
@@ -115,12 +115,20 @@ def learn(env, policy_func, discriminator, expert_dataset,
           load_model_path=None, task_name=None
           ):
     nworkers = MPI.COMM_WORLD.Get_size()
+    #print ("nworkers", nworkers)
     rank = MPI.COMM_WORLD.Get_rank()
-    np.set_printoptions(precision=3)
+    #print ("rank", rank)
+    np.set_printoptions(precision=3) #fu dian shu shu chu jing du shi 3
     # Setup losses and stuff
     # ----------------------------------------
     ob_space = env.observation_space
-    ac_space = env.action_space
+
+
+    print ("ob_space is :", ob_space, type(ob_space)) #box(11, )
+    ac_space = env.action_space 
+
+
+    print ("ac_space is :", ac_space, type(ac_space)) #box(3, )  type:gym.spaces.box.Box class
     pi = policy_func("pi", ob_space, ac_space,
                      reuse=(pretrained_weight != None))
     oldpi = policy_func("oldpi", ob_space, ac_space)
@@ -143,6 +151,9 @@ def learn(env, policy_func, discriminator, expert_dataset,
     # advantage * pnew / pold
     ratio = tf.exp(pi.pd.logp(ac) - oldpi.pd.logp(ac))
     print ("the logp is ", ratio)
+
+
+
     surrgain = U.mean(ratio * atarg)
 
     optimgain = surrgain + entbonus
@@ -186,8 +197,9 @@ def learn(env, policy_func, discriminator, expert_dataset,
 
     @contextmanager
     def timed(msg):
+        #print ("/algo/trpo_mpi/200lines") #yi ge iter zhi xing 12 ci # zhe shi yi ge fa bu xin xi de guo cheng
         if rank == 0:
-            print(colorize(msg, color='magenta'))
+            print(colorize(msg, color='red'))
             tstart = time.time()
             yield
             print(colorize("done in %.3f seconds" %
@@ -330,6 +342,8 @@ def learn(env, policy_func, discriminator, expert_dataset,
                         g = allmean(compute_vflossandgrad(mbob, mbret))
                         vfadam.update(g, vf_stepsize)
 
+
+        print ("zhe li bei yun xing le  337")
         g_losses = meanlosses
         for (lossname, lossval) in zip(loss_names, meanlosses):
             logger.record_tabular(lossname, lossval)
@@ -468,3 +482,4 @@ def evaluate(env, policy_func, load_model_path, timesteps_per_batch, number_traj
 
 def flatten_lists(listoflists):
     return [el for list_ in listoflists for el in list_]
+#if __name__ == "__main__":
