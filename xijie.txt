@@ -1,2 +1,9 @@
 nworkers 1
 rank 0
+lambda 函数，lambda后面第一个参数是真正的参数，冒号后面的表达式是关于前面参数的表达式。
+kloldnew
+ent
+meankl
+meanent
+entbonus
+pd probability distribution

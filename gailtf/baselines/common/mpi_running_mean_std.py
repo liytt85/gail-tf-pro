@@ -19,19 +19,25 @@ class RunningMeanStd(object):
             dtype=tf.float64,
             shape=(),
             initializer=tf.constant_initializer(epsilon),
-            name="count", trainable=False)
+            name="count", trainable=False) #_count = 0.01, mei you shape yi si shi mei shape wei 1
+        
+
+
+
         self.shape = shape
 
         self.mean = tf.to_float(self._sum / self._count)
-        self.std = tf.sqrt( tf.maximum( tf.to_float(self._sumsq / self._count) - tf.square(self.mean) , 1e-2 ))
+        #print ("this is self.mean", self.mean)
+        self.std = tf.sqrt( tf.maximum( tf.to_float(self._sumsq / self._count) - tf.square(self.mean) , 1e-2 )) #max(1-n^2, 0.01) zheng ge std d zhi >0.1
+        #print ("this is self.std", self.std)
 
         newsum = tf.placeholder(shape=self.shape, dtype=tf.float64, name='sum')
         newsumsq = tf.placeholder(shape=self.shape, dtype=tf.float64, name='var')
         newcount = tf.placeholder(shape=[], dtype=tf.float64, name='count')
         self.incfiltparams = U.function([newsum, newsumsq, newcount], [],
-            updates=[tf.assign_add(self._sum, newsum),
+            updates=[tf.assign_add(self._sum, newsum), 
                      tf.assign_add(self._sumsq, newsumsq),
-                     tf.assign_add(self._count, newcount)])
+                     tf.assign_add(self._count, newcount)])#ba assing_add(1, 2) di or ge zhi zeng jia dao di yi ge zhi shang mian
 
 
     def update(self, x):

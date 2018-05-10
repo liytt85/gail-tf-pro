@@ -337,9 +337,11 @@ def dense(x, size, name, weight_init=None, bias=True):
     w = tf.get_variable(name + "/w", [x.get_shape()[1], size], initializer=weight_init)
     ret = tf.matmul(x, w)
     if bias:
+        print ("gail-tf/gailtf/baselines/common/tf_util/340lines")
         b = tf.get_variable(name + "/b", [size], initializer=tf.zeros_initializer())
         return ret + b
     else:
+        print ("gail-tf/gailtf/baselines/common/tf_util/344lines")
         return ret
 
 
@@ -405,7 +407,7 @@ def function(inputs, outputs, updates=None, givens=None):
         value will also have the same shape.
     """
     if isinstance(outputs, list):
-        print ("/gail-tf/gailtf/baselines/common/tf_util.py/408lines")
+        #print ("/gail-tf/gailtf/baselines/common/tf_util.py/408lines")
         return _Function(inputs, outputs, updates, givens=givens)
     elif isinstance(outputs, (dict, collections.OrderedDict)):
         
@@ -424,8 +426,12 @@ class _Function(object):
             if not issubclass(type(inpt), TfInput):
                 assert len(inpt.op.inputs) == 0, "inputs should all be placeholders of baselines.common.TfInput"
         self.inputs = inputs
-        updates = updates or []
+        updates = updates or [] #zhe li bi xu shi []
+        #print ("updates is :", updates)
+
+
         self.update_group = tf.group(*updates)
+        #print ("self.update_group:", self.update_group) name: "group_deps_8" op: "NoOp"
         self.outputs_update = list(outputs) + [self.update_group]
         self.givens = {} if givens is None else givens
         self.check_nan = check_nan
@@ -467,8 +473,10 @@ class _Function(object):
 
 def mem_friendly_function(nondata_inputs, data_inputs, outputs, batch_size):
     if isinstance(outputs, list):
+        print ("gail-tf/gailtf/baselines/common/tf_util/474lines:")
         return _MemFriendlyFunction(nondata_inputs, data_inputs, outputs, batch_size)
     else:
+        print ("gail-tf/gailtf/baselines/common/tf_util/477lines:")
         f = _MemFriendlyFunction(nondata_inputs, data_inputs, [outputs], batch_size)
         return lambda *inputs: f(*inputs)[0]
 
@@ -745,10 +753,12 @@ _PLACEHOLDER_CACHE = {}  # name -> (placeholder, dtype, shape)
 
 def get_placeholder(name, dtype, shape):
     if name in _PLACEHOLDER_CACHE:
+        #print ("tf.util.py/748lines")
         out, dtype1, shape1 = _PLACEHOLDER_CACHE[name]
         assert dtype1 == dtype and shape1 == shape
         return out
     else:
+        #print ("tf.util.py/752lines") xian 752lines hou lai shi 748lines
         out = tf.placeholder(dtype=dtype, shape=shape, name=name)
         _PLACEHOLDER_CACHE[name] = (out, dtype, shape)
         return out

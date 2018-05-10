@@ -16,34 +16,38 @@ class MlpPolicy(object):
             self.scope = tf.get_variable_scope().name
 
     def _init(self, ob_space, ac_space, hid_size, num_hid_layers, gaussian_fixed_var=True):
-        assert isinstance(ob_space, gym.spaces.Box)
-
-        self.pdtype = pdtype = make_pdtype(ac_space)
+        assert isinstance(ob_space, gym.spaces.Box) #ru guo hou mian tiao jian wei jia ze tui chu
+        #print ("mlp_policy/20lines") zhi xing liang ci
+        #print ("ac_space.shape[0]", ac_space.shape[0]) shu chu jie guo shi 3
+        self.pdtype = pdtype = make_pdtype(ac_space) #return DiagGaussianPdType(ac_space.shape[0]) zhe li mian zui hou you pdclass()
         sequence_length = None
 
-        ob = U.get_placeholder(name="ob", dtype=tf.float32, shape=[sequence_length] + list(ob_space.shape))
-
+        ob = U.get_placeholder(name="ob", dtype=tf.float32, shape=[sequence_length] + list(ob_space.shape))#return tf.placeholder(dtype=dtype, shape=shape, name=name)
+        #print ("obspace.shape:::", list(ob_space.shape)) shu chu shi [11]
         with tf.variable_scope("obfilter"):
-            self.ob_rms = RunningMeanStd(shape=ob_space.shape)
+            #print("gail-tf/gailtf/baselines/ppo1/mlp_policy.py/28lines:")
+            self.ob_rms = RunningMeanStd(shape=ob_space.shape) #zhe ge han shu kan  bu dong
 
-        obz = tf.clip_by_value((ob - self.ob_rms.mean) / self.ob_rms.std, -5.0, 5.0)
+        obz = tf.clip_by_value((ob - self.ob_rms.mean) / self.ob_rms.std, -5.0, 5.0) #ob zhe ge shi hou hai shi placeholder
         last_out = obz
         for i in range(num_hid_layers):
-            last_out = tf.nn.tanh(U.dense(last_out, hid_size, "vffc%i"%(i+1), weight_init=U.normc_initializer(1.0)))
-        self.vpred = U.dense(last_out, 1, "vffinal", weight_init=U.normc_initializer(1.0))[:,0]
+            last_out = tf.nn.tanh(U.dense(last_out, hid_size, "vffc%i"%(i+1), weight_init=U.normc_initializer(1.0))) #da jian le quan lian jie ceng
+        self.vpred = U.dense(last_out, 1, "vffinal", weight_init=U.normc_initializer(1.0))[:,0] #wen ti shi zhe li zui hou mei you shu chu dong zuo de kongjian
 
         last_out = obz
         for i in range(num_hid_layers):
             last_out = tf.nn.tanh(U.dense(last_out, hid_size, "polfc%i"%(i+1), weight_init=U.normc_initializer(1.0)))
         if gaussian_fixed_var and isinstance(ac_space, gym.spaces.Box):
+            print ("gaussian_fixed_var is used")
             mean = U.dense(last_out, pdtype.param_shape()[0]//2, "polfinal", U.normc_initializer(0.01))
             logstd = tf.get_variable(name="logstd", shape=[1, pdtype.param_shape()[0]//2], initializer=tf.zeros_initializer())
             pdparam = U.concatenate([mean, mean * 0.0 + logstd], axis=1)
         else:
+            #print ("gaussian_fixed_var is not used") mei you bei yong dao
             pdparam = U.dense(last_out, pdtype.param_shape()[0], "polfinal", U.normc_initializer(0.01))
 
-        self.pd = pdtype.pdfromflat(pdparam) # mo rren shang mian de pdtype yi ding shi DiagGaussianPd
-
+        self.pd = pdtype.pdfromflat(pdparam) # mo rren shang mian de pdtype yi ding shi DiagGaussianPd return DiagGaussianPd
+        #pd li mian you kl, entropy, sample deng fang fa
         self.state_in = []
         self.state_out = []
 

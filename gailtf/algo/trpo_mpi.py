@@ -124,19 +124,22 @@ def learn(env, policy_func, discriminator, expert_dataset,
     ob_space = env.observation_space
 
 
-    print ("ob_space is :", ob_space, type(ob_space)) #box(11, )
+    #print ("ob_space is :", ob_space, type(ob_space)) #box(11, )
     ac_space = env.action_space 
 
 
-    print ("ac_space is :", ac_space, type(ac_space)) #box(3, )  type:gym.spaces.box.Box class
+    #print ("ac_space is :", ac_space, type(ac_space)) #box(3, )  type:gym.spaces.box.Box class
     pi = policy_func("pi", ob_space, ac_space,
                      reuse=(pretrained_weight != None))
+    #print ("gail-tf/gailtf/algo/trpo_mpi.py/134lines:", pretrained_weight) None
     oldpi = policy_func("oldpi", ob_space, ac_space)
     # Target advantage function (if applicable)
     atarg = tf.placeholder(dtype=tf.float32, shape=[None])
     ret = tf.placeholder(dtype=tf.float32, shape=[None])  # Empirical return
 
     ob = U.get_placeholder_cached(name="ob")
+    print ("gail-tf/gailtf/algo/trpo_mpi.py/140lines:", ob)
+
     ac = pi.pdtype.sample_placeholder([None])
 
     kloldnew = oldpi.pd.kl(pi.pd)
@@ -144,13 +147,14 @@ def learn(env, policy_func, discriminator, expert_dataset,
     meankl = U.mean(kloldnew)
     meanent = U.mean(ent)
     entbonus = entcoeff * meanent
+    #print ("entbonus is :", entbonus)
 
     vferr = U.mean(tf.square(pi.vpred - ret))
 
     newbuffer = []
     # advantage * pnew / pold
-    ratio = tf.exp(pi.pd.logp(ac) - oldpi.pd.logp(ac))
-    print ("the logp is ", ratio)
+    ratio = tf.exp(pi.pd.logp(ac) - oldpi.pd.logp(ac)) #0.5 * U.sum(tf.square((x - self.mean) / self.std), axis=-1) + 0.5 * np.log(2.0 * np.pi) * tf.to_float(tf.shape(x)[-1]) + U.sum(self.logstd, axis=-1)
+    #print ("the logp is ", ratio)
 
 
 
@@ -158,6 +162,7 @@ def learn(env, policy_func, discriminator, expert_dataset,
 
     optimgain = surrgain + entbonus
     losses = [optimgain, meankl, entbonus, surrgain, meanent]
+    print ("gail-tf/gailtf/algo/trpo_mpi.py/162lines:", losses)
     loss_names = ["optimgain", "meankl", "entloss", "surrgain", "entropy"]
 
     dist = meankl
@@ -214,8 +219,8 @@ def learn(env, policy_func, discriminator, expert_dataset,
         out /= nworkers
         return out
 
-    writer = U.FileWriter(log_dir)
-    U.initialize()
+    writer = U.FileWriter(log_dir) #tf.summary.FileWriter(dir_path, get_session().graph)
+    U.initialize() #Initialize all the uninitialized variables in the global scope
     th_init = get_flat()
     MPI.COMM_WORLD.Bcast(th_init, root=0)
     set_from_flat(th_init)

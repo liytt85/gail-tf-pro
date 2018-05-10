@@ -31,7 +31,9 @@ class PdType(object):
     def pdclass(self):
         raise NotImplementedError
     def pdfromflat(self, flat):
+        #print ("distribution.py/35lines:flat:", flat) Tensor("oldpi/concat:0", shape=(?, 6), dtype=float32) Tensor("pi/concat:0", shape=(?, 6), dtype=float32)
         return self.pdclass()(flat)
+
     def param_shape(self):
         raise NotImplementedError
     def sample_shape(self):
@@ -74,9 +76,12 @@ class MultiCategoricalPdType(PdType):
         return tf.int32
 
 class DiagGaussianPdType(PdType):
+
     def __init__(self, size):
+        #print ("gailtf/baselines/common/distributions.py/79lines", size) shu chu jie guo shi 3, he gei de can shu shi yiyang de
         self.size = size
     def pdclass(self):
+        #print ("this is 84 lines") zhe li bei zhi xing
         return DiagGaussianPd
     def param_shape(self):
         return [2*self.size]
@@ -137,8 +142,8 @@ class CategoricalPd(Pd):
             logits=self.logits,
             labels=one_hot_actions)
     def kl(self, other):
-        a0 = self.logits - U.max(self.logits, axis=-1, keepdims=True)
-        a1 = other.logits - U.max(other.logits, axis=-1, keepdims=True)
+        a0 = self.logits - U.max(self.logits, axis=-1, keepdims=True) #tf.reduce_max(x, axis=axis, keep_dims=keepdims)
+        a1 = other.logits - U.max(other.logits, axis=-1, keepdims=True) 
         ea0 = tf.exp(a0)
         ea1 = tf.exp(a1)
         z0 = U.sum(ea0, axis=-1, keepdims=True)
@@ -186,17 +191,20 @@ class MultiCategoricalPd(Pd):
 
 class DiagGaussianPd(Pd):
     def __init__(self, flat):
+        #print ("gailtf/baselines/common/distributions.py/191lines") zhe li bei zhi xing
         self.flat = flat
         mean, logstd = tf.split(axis=len(flat.shape)-1, num_or_size_splits=2, value=flat)
         self.mean = mean
-        self.logstd = logstd
+        #print ("mean:", mean) #mean: Tensor("oldpi/split:0", shape=(?, 3), dtype=float32)
+        self.logstd = logstd #logstd: Tensor("pi/split:1", shape=(?, 3), dtype=float32)
+        #print ("logstd:", logstd)
         self.std = tf.exp(logstd)
     def flatparam(self):
         return self.flat
     def mode(self):
         return self.mean
     def neglogp(self, x):
-        print ("the DiagGaussianPd is used")
+        #print ("the DiagGaussianPd is used") have been used
         return 0.5 * U.sum(tf.square((x - self.mean) / self.std), axis=-1) \
                + 0.5 * np.log(2.0 * np.pi) * tf.to_float(tf.shape(x)[-1]) \
                + U.sum(self.logstd, axis=-1)
@@ -236,15 +244,20 @@ class BernoulliPd(Pd):
 def make_pdtype(ac_space):
     from gym import spaces
     if isinstance(ac_space, spaces.Box):
+        #print ("/gailtf/baselines/common/distributions.py/239lines") zhe li bei zhi xing le
         assert len(ac_space.shape) == 1
         return DiagGaussianPdType(ac_space.shape[0])
     elif isinstance(ac_space, spaces.Discrete):
+        #print ("/gailtf/baselines/common/distributions.py/243lines")
         return CategoricalPdType(ac_space.n)
     elif isinstance(ac_space, spaces.MultiDiscrete):
+        #print ("/gailtf/baselines/common/distributions.py/246lines")
         return MultiCategoricalPdType(ac_space.low, ac_space.high)
     elif isinstance(ac_space, spaces.MultiBinary):
+        #print ("/gailtf/baselines/common/distributions.py/249lines")
         return BernoulliPdType(ac_space.n)
     else:
+        #print ("/gailtf/baselines/common/distributions.py/252lines")
         raise NotImplementedError
 
 def shape_el(v, i):
